@@ -1,0 +1,5 @@
+puphpet/config-custom.yaml
+
+.DS_Store
+sites/*
+!sites/.gitkeep

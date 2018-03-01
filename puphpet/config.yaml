@@ -1,0 +1,274 @@
+vagrantfile:
+    target: local
+    vm:
+        provider:
+            local:
+                box: bento/ubuntu-16.04
+                box_url: 'false'
+                box_version: '0'
+                chosen_virtualizer: virtualbox
+                virtualizers:
+                    virtualbox:
+                        modifyvm:
+                            natdnshostresolver1: false
+                        showgui: 0
+                    vmware:
+                        numvcpus: 1
+                    parallels:
+                        linked_clone: 0
+                        check_guest_tools: 0
+                        update_guest_tools: 0
+                machines:
+                    machine1:
+                        id: m1
+                        hostname: m1.devel
+                        network:
+                            private_network: 192.168.56.101
+                            forwarded_port:
+                                port1:
+                                    host: '7222'
+                                    guest: '22'
+                        memory: '4096'
+                        cpus: '2'
+        provision:
+            puppet:
+                manifests_path: puphpet/puppet/manifests
+                module_path:
+                    - puphpet/puppet/modules
+                    - puphpet/puppet/manifests
+                options:
+                    - '--verbose'
+                    - '--hiera_config /opt/puphpet/puppet/hiera.yaml'
+        synced_folder:
+            folder1:
+                owner: vagrant
+                group: vagrant
+                source: ./sites/
+                target: /var/www
+                sync_type: nfs
+                smb:
+                    smb_host: ''
+                    smb_username: ''
+                    smb_password: ''
+                    mount_options:
+                        dir_mode: '0775'
+                        file_mode: '0664'
+                rsync:
+                    args:
+                        - '--verbose'
+                        - '--archive'
+                        - '-z'
+                    exclude:
+                        - .vagrant/
+                        - .git/
+                    auto: 'true'
+        usable_port_range:
+            start: 10200
+            stop: 10500
+        post_up_message: ''
+    ssh:
+        host: 'false'
+        port: 'false'
+        private_key_path: 'false'
+        username: vagrant
+        guest_port: 'false'
+        keep_alive: '1'
+        forward_agent: 'false'
+        forward_x11: 'false'
+        shell: 'bash -l'
+        insert_key: 'false'
+    vagrant:
+        host: detect
+    proxy:
+        http: ''
+        https: ''
+        ftp: ''
+        no_proxy: ''
+
+server:
+    install: '1'
+    packages:
+        - bash-completion
+        - htop
+        - vim
+
+users_groups:
+    install: '1'
+    groups: {  }
+    users: {  }
+
+locale:
+    install: '1'
+    settings:
+        default_locale: en_US.UTF-8
+        locales:
+            - en_GB.UTF-8
+            - en_US.UTF-8
+        timezone: UTC
+
+firewall:
+    install: '1'
+    rules: {  }
+
+resolv:
+    install: '1'
+    nameservers:
+        - 8.8.8.8
+        - 8.8.4.4
+    domainname: ''
+    searchpath: {  }
+
+cron:
+    install: '1'
+    jobs: {  }
+
+apache:
+    install: '1'
+    settings:
+        version: 2.4
+        user: vagrant
+        group: vagrant
+        default_vhost: true
+        manage_user: false
+        manage_group: false
+        sendfile: 0
+    modules:
+        - proxy_fcgi
+        - rewrite
+        - headers
+        - deflate
+    vhosts:
+        vhost1:
+            servername: agh-m1.devel
+            serveraliases:
+                - www.agh-m1.devel
+            docroot: /var/www/m1-aliengearholsters/www
+            port: '80'
+            setenvif:
+                - 'Authorization "(.*)" HTTP_AUTHORIZATION=$1'
+            directories:
+                php_html:
+                    provider: directory
+                    path: /var/www/m1-aliengearholsters/www
+                    directoryindex: 'index.php'
+                    options:
+                        - Indexes
+                        - FollowSymlinks
+                        - MultiViews
+                    allow_override:
+                        - All
+                    require:
+                        - 'all granted'
+                php_php:
+                    provider: filesmatch
+                    path: \.php$
+                    sethandler: 'proxy:fcgi://127.0.0.1:9000'
+
+php:
+    install: '1'
+    settings:
+        version: '5.6'
+    modules:
+        php:
+            - gd
+            - cli
+            - intl
+            - xml
+            - mcrypt
+            - bcmath
+            - curl
+            - mbstring
+            - mysql
+            - soap
+            - xsl
+            - zip
+            - json
+        pear: {  }
+        pecl: {  }
+    ini:
+        display_errors: 'On'
+        error_reporting: '-1'
+        session.save_path: /var/lib/php/session
+        date.timezone: UTC
+        memory_limit: 1G
+        max_execution_time: '1800'
+        zlib.output_compression: 'On'
+        magic_quotes_gpc: 'Off'
+        session.autostart: 'Off'
+        suhosin.session.cryptua: 'Off'
+        zend.ze1_compatibility_mode: 'Off'
+    fpm_ini:
+        error_log: /var/log/php-fpm.log
+    fpm_pools:
+        pool1:
+            ini:
+                prefix: www
+                listen: '127.0.0.1:9000'
+                security.limit_extensions: .php
+                user: vagrant
+                group: vagrant
+    composer: '1'
+    composer_home: ''
+
+xdebug:
+    install: '1'
+    settings:
+        xdebug.default_enable: '1'
+        xdebug.remote_connect_back: '1'
+        xdebug.remote_enable: '1'
+        xdebug.remote_handler: dbgp
+        xdebug.remote_port: '9000'
+        xdebug.remote_autostart: '1'
+        xdebug.remote_host: 192.168.56.1
+
+ruby:
+    install: '1'
+    versions:
+        ruby1:
+            default: '1'
+            bundler: '1'
+            version: '2.4'
+            gems:
+                - deep_merge@1.2.1
+                - activesupport@5.1.4
+                - vine@0.4
+
+python:
+    install: '1'
+    packages: {  }
+    versions:
+        version_bpz:
+            version: 3.6.4
+
+nodejs:
+    install: '1'
+    settings:
+        version: '6'
+    npm_packages: {  }
+
+
+mysql:
+    install: '1'
+    settings:
+        version: '5.6'
+        root_password: '123'
+        override_options: {  }
+    databases:
+        database1:
+            name: agh
+            collate: utf8_general_ci
+            sql: ''
+
+redis:
+    install: '1'
+    settings:
+        port: '6379'
+
+mailhog:
+    install: '1'
+    settings:
+        smtp_ip: 0.0.0.0
+        smtp_port: 1025
+        http_ip: 0.0.0.0
+        http_port: '8025'
+        path: /usr/local/bin/mailhog
